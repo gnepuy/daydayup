@@ -1,0 +1,693 @@
+[TOC]
+
+
+
+## 1、从 App 工程/Makefile 文件说起
+
+```makefile
+for_explore:            # 「探索版」开发调试用
+  $(MAKE) clean
+  ZHAPP_CONFIG_NAME=com.aaa.explore ZHAPP_PACKAGE_TYPE=developer VENOM_MAKE_MODE=Debug bundle exec ruby make.rb
+  ZHAPP_CONFIG_NAME=com.aaa.explore ZHAPP_PACKAGE_TYPE=developer ZHAPP_CODE_SIGN_NAME=development MATCH_PASSWORD=我是密码 bundle exec fastlane change_bundle_id
+
+for_explore_instruments:# 「探索版」性能测试用
+  $(MAKE) clean
+  ZHAPP_CONFIG_NAME=com.aaa.explore ZHAPP_PACKAGE_TYPE=instruments VENOM_MAKE_MODE=Release bundle exec ruby make.rb
+  ZHAPP_CONFIG_NAME=com.aaa.explore ZHAPP_PACKAGE_TYPE=instruments ZHAPP_CODE_SIGN_NAME=development MATCH_PASSWORD=我是密码 bundle exec fastlane change_bundle_id
+
+for_explore_mr: 	    # 「探索版」MR 测试用
+  $(MAKE) clean
+  ZHAPP_CONFIG_NAME=com.aaa.explore-dev ZHAPP_PACKAGE_TYPE=mergerequest VENOM_MAKE_MODE=Release bundle exec ruby make.rb
+  ZHAPP_CONFIG_NAME=com.aaa.explore-dev ZHAPP_PACKAGE_TYPE=mergerequest ZHAPP_CODE_SIGN_NAME=enterprise MATCH_PASSWORD=我是密码 bundle exec fastlane change_bundle_id
+
+for_explore_regression: # 「探索版」集成测试包
+  $(MAKE) clean
+  ZHAPP_CONFIG_NAME=com.aaa.explore-dev ZHAPP_PACKAGE_TYPE=regression VENOM_MAKE_MODE=Release bundle exec ruby make.rb
+  ZHAPP_CONFIG_NAME=com.aaa.explore-dev ZHAPP_PACKAGE_TYPE=regression ZHAPP_CODE_SIGN_NAME=enterprise MATCH_PASSWORD=我是密码 bundle exec fastlane change_bundle_id
+
+for_explore_testflight: # 「探索版」集成 TF 包
+  $(MAKE) clean
+  ZHAPP_CONFIG_NAME=com.aaa.explore ZHAPP_PACKAGE_TYPE=testflight VENOM_MAKE_MODE=Release bundle exec ruby make.rb
+  ZHAPP_CONFIG_NAME=com.aaa.explore ZHAPP_PACKAGE_TYPE=testflight ZHAPP_CODE_SIGN_NAME=app-store MATCH_PASSWORD=我是密码 bundle exec fastlane change_bundle_id
+
+for_explore_appstore:   # 「探索版」苹果提审包
+  $(MAKE) clean
+  ZHAPP_CONFIG_NAME=com.aaa.explore ZHAPP_PACKAGE_TYPE=appstore VENOM_USE_ALL_SOURCE=1 bundle exec ruby make.rb
+  ZHAPP_CONFIG_NAME=com.aaa.explore ZHAPP_PACKAGE_TYPE=appstore ZHAPP_CODE_SIGN_NAME=app-store MATCH_PASSWORD=我是密码 bundle exec fastlane change_bundle_id
+
+for_app:              # 「正式版」开发调试用
+  $(MAKE) clean
+  ZHAPP_CONFIG_NAME=com.aaa.ios ZHAPP_PACKAGE_TYPE=developer VENOM_MAKE_MODE=Debug bundle exec ruby make.rb
+  ZHAPP_CONFIG_NAME=com.aaa.ios ZHAPP_PACKAGE_TYPE=developer ZHAPP_CODE_SIGN_NAME=development MATCH_PASSWORD=我是密码 bundle exec fastlane change_bundle_id
+
+for_app_instruments:	# 「正式版」性能测试用
+  $(MAKE) clean
+  ZHAPP_CONFIG_NAME=com.aaa.ios ZHAPP_PACKAGE_TYPE=instruments VENOM_MAKE_MODE=Release bundle exec ruby make.rb
+  ZHAPP_CONFIG_NAME=com.aaa.ios ZHAPP_PACKAGE_TYPE=instruments ZHAPP_CODE_SIGN_NAME=development MATCH_PASSWORD=我是密码 bundle exec fastlane change_bundle_id
+
+for_app_mr:   		# 「正式版」MR 测试用
+  $(MAKE) clean
+  ZHAPP_CONFIG_NAME=com.aaa.ios-dev ZHAPP_PACKAGE_TYPE=mergerequest VENOM_MAKE_MODE=Release bundle exec ruby make.rb
+  ZHAPP_CONFIG_NAME=com.aaa.ios-dev ZHAPP_PACKAGE_TYPE=mergerequest ZHAPP_CODE_SIGN_NAME=enterprise MATCH_PASSWORD=我是密码 bundle exec fastlane change_bundle_id
+
+for_app_regression:   # 「正式版」集成测试包
+  $(MAKE) clean
+  ZHAPP_CONFIG_NAME=com.aaa.ios-dev ZHAPP_PACKAGE_TYPE=regression VENOM_MAKE_MODE=Release bundle exec ruby make.rb
+  ZHAPP_CONFIG_NAME=com.aaa.ios-dev ZHAPP_PACKAGE_TYPE=regression ZHAPP_CODE_SIGN_NAME=enterprise MATCH_PASSWORD=我是密码 bundle exec fastlane change_bundle_id
+
+for_app_testflight:   # 「正式版」集成 TF 包
+  $(MAKE) clean
+  ZHAPP_CONFIG_NAME=com.aaa.ios ZHAPP_PACKAGE_TYPE=testflight VENOM_MAKE_MODE=Release bundle exec ruby make.rb
+  ZHAPP_CONFIG_NAME=com.aaa.ios ZHAPP_PACKAGE_TYPE=testflight ZHAPP_CODE_SIGN_NAME=app-store MATCH_PASSWORD=我是密码 bundle exec fastlane change_bundle_id
+
+for_app_appstore:     # 「正式版」正式提审包
+  $(MAKE) clean
+  ZHAPP_CONFIG_NAME=com.aaa.ios ZHAPP_PACKAGE_TYPE=appstore VENOM_USE_ALL_SOURCE=1 bundle exec ruby make.rb
+  ZHAPP_CONFIG_NAME=com.aaa.ios ZHAPP_PACKAGE_TYPE=appstore ZHAPP_CODE_SIGN_NAME=app-store MATCH_PASSWORD=我是密码 bundle exec fastlane change_bundle_id
+```
+
+对于如果不懂 Makefile 的，也不要紧，我简单的解释下这个文件干嘛的
+
+- 目前来说对于有 两种类型的 **app**
+  - 1)  主 app
+  - 2)  新推出的 探索版 app （一些尝鲜的新特性）
+- 而对于每一种 app 又分为 **多种打包** , 具体打包不是重点讨论的
+  - 1) 开发调试包
+  - 2) instruments 性能测试用
+  - 3) gitlab merge request 包
+  - 4) 集成测试包
+  - 5) testflight 灰度包
+  - 6) appstore 商店包
+
+
+
+## 2、以 bundle id 区分 不同类型 app
+
+### 1. 每一种 工程配置, 可能有的 配置项
+
+- 1) bundle id
+- 2) 组件 二进制 类型
+- 3) codesign 签名 类型
+- 4) 证书 类型
+- 5) 构建 模式 （debug、adhoc、release）
+- ……………. 等等
+
+### 2. 通过 面向对象 方式管理 每一种类型工程 所有的配置项
+
+> 下面是通过 ruby 实现的, 其他语言类似。
+
+#### 1. 配置的 抽象模板类
+
+```ruby
+class Config
+  def name
+    "undefined"
+  end
+
+  def display_name
+    "undefined"
+  end
+
+  def product_name
+    "undefined"
+  end
+
+  def definition_key
+    "undefined"
+  end
+
+  def main_target
+    "undefined"
+  end
+
+  def targets
+    []
+  end
+
+  def bundle_ids
+    []
+  end
+
+  def app_groups
+    []
+  end
+
+  def info_plists
+    []
+  end
+
+  def entitlements
+    []
+  end
+
+  def xcodeproj
+    "osee2unified.xcodeproj"
+  end
+
+  def pods_project
+    "Pods/Pods.xcodeproj"
+  end
+
+  def team_id
+    "undefined"
+  end
+
+  def apple_account_name
+    "undefined"
+  end
+
+  def certificates_git
+    "undefined"
+  end
+
+  def target_bundle_id_map
+    # eg:
+    # {
+    #   "osee2unifiedRelease"=>"com.app.ios",
+    #  "todayWidget"=>"com.app.ios.todayWidget",
+    #  "Share"=>"com.app.ios.Share",
+    #  "notificationService"=>"com.app.ios.notificationService"
+    # }
+    hash = {}
+    targets.zip(bundle_ids) { |a, b| hash[a] = b }
+    hash
+  end
+
+  def target_info_plist_map
+    # eg:
+    # {
+    #   "osee2unifiedRelease"=>"osee2unified/osee2unifiedRelease-Info.plist",
+    #  "todayWidget"=>"NotificationService/Info.plist",
+    #  "Share"=>"Share/Info.plist",
+    #  "notificationService"=>"todayWidget/Info.plist"
+    # }
+    hash = {}
+    targets.zip(info_plists) { |a, b| hash[a] = b }
+    hash
+  end
+
+  def target_entitlement_map
+    # eg:
+    # {
+    #   "osee2unifiedRelease"=>"osee2unified/osee2unified.entitlements",
+    #  "todayWidget"=>"NotificationService/notificationService.entitlements",
+    #  "Share"=>"Share/Share.entitlements",
+    #  "notificationService"=>"todayWidget/todayWidget.entitlements"
+    # }
+    hash = {}
+    targets.zip(entitlements) { |a, b| hash[a] = b }
+    hash
+  end
+
+  def is_dev_name
+    name.end_with?("-dev")
+  end
+end
+```
+
+#### 2.  主 app - com.app.ios
+
+```ruby
+class Default < Config
+  def name
+    "com.app.ios"
+  end
+
+  def display_name
+    ""
+  end
+
+  def product_name
+    "osee2unifiedRelease"
+  end
+
+  def definition_key
+    "ZH_app_APP"
+  end
+
+  def main_target
+    "osee2unifiedRelease"
+  end
+
+  def targets
+    [
+      "osee2unifiedRelease",
+      "todayWidget",
+      "Share",
+      "notificationService"
+    ]
+  end
+
+  def bundle_ids
+    [
+      "com.app.ios",
+      "com.app.ios.todayWidget",
+      "com.app.ios.Share",
+      "com.app.ios.notificationService"
+    ]
+  end
+
+  def app_groups
+    [
+      "group.com.app.ios",
+    ]
+  end
+
+  def info_plists
+    [
+      "osee2unified/osee2unifiedRelease-Info.plist",
+      "NotificationService/Info.plist",
+      "Share/Info.plist",
+      "todayWidget/Info.plist",
+    ]
+  end
+
+  def entitlements
+    [
+      "osee2unified/osee2unified.entitlements",
+      "NotificationService/notificationService.entitlements",
+      "Share/Share.entitlements",
+      "todayWidget/todayWidget.entitlements",
+    ]
+  end
+
+  def team_id
+    "xxx"
+  end
+
+  def apple_account_name
+    "xxx@xxx.com"
+  end
+
+  def certificates_git
+    "git@git.xxx/certificates_xxx.git"
+  end
+end
+```
+
+#### 3.  主 app - com.app.ios-dev
+
+```ruby
+class DefaultDev < Config
+  def name
+    "com.app.ios-dev"
+  end
+
+  def display_name
+    "-内部体验"
+  end
+
+  def product_name
+    "osee2unifiedRelease"
+  end
+
+  def definition_key
+    "ZH_app_APP"
+  end
+
+  def main_target
+    "osee2unifiedRelease"
+  end
+
+  def targets
+    [
+      "osee2unifiedRelease",
+      "todayWidget",
+      "Share",
+      "notificationService"
+    ]
+  end
+
+  def bundle_ids
+    [
+      "com.app.ios-dev",
+      "com.app.ios-dev.todayWidget",
+      "com.app.ios-dev.Share",
+      "com.app.ios-dev.notificationService"
+    ]
+  end
+
+  def app_groups
+    [
+      "group.com.app.ios-dev",
+    ]
+  end
+
+  def info_plists
+    [
+      "osee2unified/osee2unifiedRelease-Info.plist",
+      "NotificationService/Info.plist",
+      "Share/Info.plist",
+      "todayWidget/Info.plist",
+    ]
+  end
+
+  def entitlements
+    [
+      "osee2unified/osee2unified.entitlements",
+      "NotificationService/notificationService.entitlements",
+      "Share/Share.entitlements",
+      "todayWidget/todayWidget.entitlements",
+    ]
+  end
+
+  def team_id
+    "xxx"
+  end
+
+  def apple_account_name
+    "xxx@xxx.com"
+  end
+
+  def certificates_git
+    "git@xxx/certificates.git"
+  end
+end
+```
+
+#### 4.  探索版 app - com.app.explore
+
+```ruby
+class Explore < Config
+  def name
+    "com.app.explore"
+  end
+
+  def display_name
+    "探索版"
+  end
+
+  def product_name
+    "explore"
+  end
+
+  def definition_key
+    "ZH_EXPLORE_APP"
+  end
+
+  def main_target
+    "osee2unifiedRelease"
+  end
+
+  def targets
+    [
+      "osee2unifiedRelease",
+      "todayWidget",
+      "Share",
+      "notificationService"
+    ]
+  end
+
+  def bundle_ids
+    [
+      "com.app.explore",
+      "com.app.explore.todayWidget",
+      "com.app.explore.Share",
+      "com.app.explore.notificationService"
+    ]
+  end
+
+  def app_groups
+    [
+      "group.com.app.ios",
+    ]
+  end
+
+  def info_plists
+    [
+      "osee2unified/osee2unifiedRelease-Info.plist",
+      "NotificationService/Info.plist",
+      "Share/Info.plist",
+      "todayWidget/Info.plist",
+    ]
+  end
+
+  def entitlements
+    [
+      "osee2unified/osee2unified.entitlements",
+      "NotificationService/notificationService.entitlements",
+      "Share/Share.entitlements",
+      "todayWidget/todayWidget.entitlements",
+    ]
+  end
+
+  def team_id
+    "xxx"
+  end
+
+  def apple_account_name
+    "xxx@xxx.com"
+  end
+
+  def certificates_git
+    "git@xxxx/certificates_xxx.git"
+  end
+end
+```
+
+#### 5.  探索版 app - com.app.explore-dev
+
+```ruby
+class ExploreDev < Config
+  def name
+    "com.app.explore-dev"
+  end
+
+  def display_name
+    "探索版-内部体验"
+  end
+
+  def product_name
+    "explore"
+  end
+
+  def definition_key
+    "ZH_EXPLORE_APP"
+  end
+
+  def main_target
+    "osee2unifiedRelease"
+  end
+
+  def targets
+    [
+      "osee2unifiedRelease",
+      "todayWidget",
+      "Share",
+      "notificationService"
+    ]
+  end
+
+  def bundle_ids
+    [
+      "com.app.explore-dev",
+      "com.app.explore-dev.todayWidget",
+      "com.app.explore-dev.Share",
+      "com.app.explore-dev.notificationService"
+    ]
+  end
+
+  def app_groups
+    [
+      "group.com.app.ios-dev",
+    ]
+  end
+
+  def info_plists
+    [
+      "osee2unified/osee2unifiedRelease-Info.plist",
+      "NotificationService/Info.plist",
+      "Share/Info.plist",
+      "todayWidget/Info.plist",
+    ]
+  end
+
+  def entitlements
+    [
+      "osee2unified/osee2unified.entitlements",
+      "NotificationService/notificationService.entitlements",
+      "Share/Share.entitlements",
+      "todayWidget/todayWidget.entitlements",
+    ]
+  end
+
+  def team_id
+    "xxx"
+  end
+
+  def apple_account_name
+    "xxx@xxx.com"
+  end
+
+  def certificates_git
+    "git@xxx/certificates.git"
+  end
+end
+```
+
+
+
+## 3、App 工程/fastlane/ChangeProjectFastfile 读取配置, 修改工程配置为对应的 bundle id
+
+```ruby
+lane :change_project do
+  ########### 1、读取每一种 bundle id 对一个的配置
+  ## 拿到对应配置的实现类对象
+  ### - Explore.new
+  ### - ExploreDev.new
+  ### - Default.new
+  ### - DefaultDev.new
+  config = ChangeBundle::Helper.selected_config
+  ## 包的类型
+  ### - developer
+  ### - instruments
+  ### - mergerequest
+  ### - regression
+  ### - testflight
+  ### - appstore
+  packate_type = ChangeBundle::Helper.selected_package_type
+  ## xcodeproj 文件的路径
+  project = File.expand_path(config.xcodeproj, './..')
+
+  ########### 2、打印 上面配置项, 便于调试
+  print_config(
+    config: config
+  )
+
+  ########### 3、修改 工程的 DISPLAY_NAME
+  update_display_name(
+      config: config,
+      project: project
+  )
+
+  ########### 4、修改 工程的 PRODUCT_NAME
+  update_product_name(
+      config: config,
+      project: project
+  )
+
+  ########### 5、修改 工程的 PRODUCT_BUNDLE_IDENTIFIER
+  update_bundle_id(
+    config: config,
+    project: project
+  )
+
+  ########### 6、如果 bundle 是 -dev 结尾, 表示 enterprise 企业包类型
+  if config.is_dev_name
+    ## 删除 apple signin 配置项
+    remove_sign_in_with_apple(
+      config: config,
+      project: project
+    )
+    ## update app group identifiers
+    update_group_id(
+      config: config,
+      project: project
+    )
+  end
+
+  ########### 7、调用 fastlane match plugin 修改工程的 证书配置
+  update_profile(
+    config: config,
+    project: project
+  )
+
+  ########### 8、给工程添加 标识 不同包类型 预处理宏定义 ZHAppPackageType
+  project_dir = File.dirname(project)
+  set_info_plist_value(
+      path: "#{project_dir}/#{config.info_plists[0]}",
+      key: "ZHAppPackageType",
+      value: packate_type)
+
+  ########### 9、如果是 集成测试包 修改 ZHAppPackageType = beta
+  if packate_type == 'regression'
+    set_info_plist_value(
+      path: "#{project_dir}/#{config.info_plists[0]}",
+      key: "ZHAppBuildType",
+      value: 'beta')
+  end
+end
+```
+
+如上步骤具体调用的代码都比较简单，就不贴了，基本上就是都是调用
+
+- fastlane action/plugin
+- xcodeproj ruby 库
+- 自己写一点简单的 ruby 代码
+
+唯一一个稍微复杂的是 update_profile 调用的代码，我稍微贴一下。
+
+
+
+## 4、其中步骤 update_profile
+
+```ruby
+private_lane :update_profile do |options|
+  config = options[:config]
+  project = options[:project]
+  project_dir = File.dirname(project)
+  type = ChangeBundle::Helper.selected_code_sign_type
+
+  if type.nil?
+    raise "error : match type is nil!"
+  end
+
+  ####### 1、调用 match action 修改工程的证书配置
+  match(
+    type: ChangeBundle::Helper.match_type_map[type],
+    app_identifier: config.bundle_ids,
+    team_id: config.team_id,
+    username: config.apple_account_name,
+    git_url: config.certificates_git,
+    readonly: true
+  )
+
+  ####### 2、得到每一个 bundle id 修改为的 profile 配置
+  match_profile_map = {}
+  config.bundle_ids.each do |identifier|
+    sign_type = ChangeBundle::Helper.match_type_map[type]
+    match_profile_map[identifier] = {
+      profile_path: ENV["sigh_#{identifier}_#{sign_type}_profile-path"],
+      profile_name: ENV["sigh_#{identifier}_#{sign_type}_profile-name"],
+      profile_udid: ENV["sigh_#{identifier}_#{sign_type}"],
+    }
+  end
+  puts match_profile_map
+
+  ####### 3、额外做一步 禁止 xcode 自动签名, 因为使用 match 修改了
+  config.targets.each do |target|
+    identifier = config.target_bundle_id_map[target]
+    code_sign_identity = ChangeBundle::Helper.code_sign_identity_map[type]
+    disable_automatic_code_signing(
+      path: project,
+      team_id: config.team_id,
+      targets: [target],
+      use_automatic_signing: false,
+      code_sign_identity: code_sign_identity,
+      profile_name: match_profile_map[identifier][:profile_name],
+      profile_uuid: match_profile_map[identifier][:profile_udid]
+    )
+  end
+
+  ####### 4、保存 profile 配置信息
+  file = "#{project_dir}/export_options.provisioningProfiles.json"
+  system "rm #{file}"
+  require 'json'
+  File.open(file, "w+") {|f| f.write match_profile_map.to_json }
+end
+```
+
+
+
+## 5、总结
+
+- 我们这种马甲包的实现，并不是通过大多数使用 **一个工程，创建多个 target** 方式来完成的
+- 而是通过 **脚本** 的方式，**修改** 每一种包的所有需要的 **工程配置项**
+- 到此为止只是涉及到 **适配为某一种包类型的工程配置** , 还没有涉及到修改之后的 **构建打包**
+- 之前打包脚本中会做上面很多的事情，就会造成这些脚本只能应用于 **ci 阶段**
+- 而现在这部分代码已经拿到 **工程适配** 阶段了，可以应用于 **iOS开发童鞋的日常开发阶段**
+- 对于公司内的 每一个 **iOS 开发童鞋**，可以很轻松的基于主工程适配到其他各个类型的工程进行开发
+- 对于 **ci 代码** 只需要考虑如何 **组件集成、构建打包、分包 ...**
+
+
+
