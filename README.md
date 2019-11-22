@@ -397,6 +397,13 @@ if/else/switch/times/break/continue ….
 ### 2. 文件 I/O
 
 - [01 - stdio 与 linux io](linux_02/02/01/README.md)
+- [02 - open、read、write](linux_02/02/02/README.md)
+- [03 - readv、writev](linux_02/02/03/README.md)
+- [04 - lseek](linux_02/02/04/README.md)
+- [05 - dir](linux_02/02/05/README.md)
+- [06 - lstat](linux_02/02/06/README.md)
+- [07 - fcntl](linux_02/02/07/README.md)
+- [08 - dup、dup2](linux_02/02/08/README.md)
 
 ### 3. 进程
 
