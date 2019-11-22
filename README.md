@@ -228,7 +228,8 @@
 
 ### 自动化构建 (CI)
 
-- [01 - 马甲包 的另一种实现](ios/majiabao/01/README.md)
+- [01 - 马甲包 的另一种实现](ios/majiabao/README.md)
+- [02 - 自动化构建 (CI)](ios/auto_build/README.md)
 
 ### 读书笔记
 
@@ -395,7 +396,7 @@ if/else/switch/times/break/continue ….
 
 ### 2. 文件 I/O
 
-- [01 - ](02/01/README.md)
+- [01 - stdio 与 linux io](linux_02/02/01/README.md)
 
 ### 3. 进程
 
