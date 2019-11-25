@@ -184,7 +184,7 @@ end
 
 ### 10. configuration
 
-#### 1. ==Appfile== 默认配置
+#### 1. ==Appfile== 默认配置, 全局使用
 
 ```
 app_identifier "com.used.id"

@@ -200,11 +200,9 @@
 
 #### 3. virus
 
-- [实现](/Users/xiongzenghui/Desktop/daydayup/ios/cocoapods/03/README.md)
+- [实现](ios/cocoapods/03/README.md)
 
 ### fastlane
-
-
 
 #### 01. Fastfile
 
@@ -236,10 +234,17 @@
 
 - [README](ios/fastlane/06/README.md)
 
-### 自动化构建 (CI)
+### devops
 
-- [01 - 马甲包 的另一种实现](ios/majiabao/README.md)
-- [02 - 自动化构建 (CI)](ios/auto_build/README.md)
+#### 马甲包
+
+- [01 - 马甲包 - 工程 - 修改](ios/devops/majiabao/01.md)
+- [02 - 马甲包 - 工程 - 同步](ios/devops/majiabao/02.md)
+- [03 - 马甲包 - 工程 - 构建](ios/devops/majiabao/03.md)
+
+#### gitlab merge request Pipeline
+
+- [gitlab Pipeline](ios/devops/pipeline/01.md)
 
 ### 读书笔记
 
@@ -370,10 +375,12 @@ if/else/switch/times/break/continue ….
 ### 9. 😉 手把手教你开发并上线一个 Ruby 软件
 
 - 本地的 开发、调试
-
 - 发布到 rubygems.org
-
 - 本地 调试 Ruby 开源库
+
+### 10. 技巧总结
+
+- [01 - 文件读写](ruby/09/01/README.md)
 
 
 
