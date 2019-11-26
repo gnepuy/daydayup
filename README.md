@@ -206,7 +206,7 @@
 
 #### 01. Fastfile
 
-- [01 - Fastfile  基础使用](ios/fastlane/01/README.md)
+- [01 - Fastfile 语法](ios/fastlane/01/README.md)
 - [02 - ENV 环境变量](ios/fastlane/02/README.md)
 - [03 - Interacting with the user](ios/fastlane/03/README.md)
 - [04 - run command](ios/fastlane/04/06/README.md)
@@ -240,11 +240,15 @@
 
 - [01 - 马甲包 - 工程 - 修改](ios/devops/majiabao/01.md)
 - [02 - 马甲包 - 工程 - 同步](ios/devops/majiabao/02.md)
-- [03 - 马甲包 - 工程 - 构建](ios/devops/majiabao/03.md)
 
-#### gitlab merge request Pipeline
+#### 自动化构建系统
 
-- [gitlab Pipeline](ios/devops/pipeline/01.md)
+- [01 - xxx](ios/devops/ci/01.md)
+
+#### MR(Gitlab Merge Request) Pipeline
+
+- [基于 `.gitlab-ci.yml` 实现 Pipeline](ios/devops/pipeline/01.md)
+
 
 ### 读书笔记
 
@@ -381,6 +385,11 @@ if/else/switch/times/break/continue ….
 ### 10. 技巧总结
 
 - [01 - 文件读写](ruby/09/01/README.md)
+
+### 11. 模拟 gitlab ruby api gem
+
+- [README](ruby/10/README.md)
+
 
 
 
