@@ -204,35 +204,48 @@
 
 ### fastlane
 
-#### 01. Fastfile
+#### 01. Fastfile 基础
 
-- [01 - Fastfile 语法](ios/fastlane/01/README.md)
-- [02 - ENV 环境变量](ios/fastlane/02/README.md)
-- [03 - Interacting with the user](ios/fastlane/03/README.md)
-- [04 - run command](ios/fastlane/04/06/README.md)
+- [01 - Fastfile 文件中定义 lane](ios/fastlane/01/01/README.md)
+- [02 - ENV 环境变量](ios/fastlane/01/02/README.md)
+- [03 - Appfile Configuration](ios/fastlane/01/03/README.md)
+- [04 - lane hooks](ios/fastlane/01/04/README.md)
+- [05 - fastlane_require() 替代 require() 载入 第三方 gem](ios/fastlane/01/05/README.md)
+- [06 - 代码定义 lane](ios/fastlane/01/06/README.md)
+- [07 - lane 中使用 send(:xxx, args)](ios/fastlane/01/07/README.md)
+- [08 - shell 代码中, 捕获 lane 异常退出](ios/fastlane/01/08/README.md)
+- [09 - run command](ios/fastlane/01/09/README.md)
 
 #### 02. action
 
-- [01 - lane 与 action 工作目录不一样](ios/fastlane/04/01/README.md)
-- [02 - 自定义 action、运行 action](ios/fastlane/04/02/README.md)
-- [04 - 参数的 类型、校验](ios/fastlane/04/03/README.md)
-- [05 - action 之间的 数据传递](ios/fastlane/04/04/README.md)
-- [06 - action 缺点: 无法在其他 fastlane 项目中复用](ios/fastlane/04/05/README.md)
+- [01 - lane 与 action 工作目录 ==不一样==](ios/fastlane/02/01/README.md)
+- [02 - 自定义 action、运行 action](ios/fastlane/02/02/README.md)
+- [03 - action 参数类型](ios/fastlane/02/03/README.md)
+- [04 - actionA ==传递== 数据给 actionB](ios/fastlane/02/04/README.md)
+- [05 - action 无法在 ==其他 fastlane 项目中复用==](ios/fastlane/02/05/README.md)
+- [06 - fastlane ==禁止== actionA 中, 调用 actionB](ios/fastlane/02/06/README.md)
 
 #### 03. plugin
 
-- [01 - plugin 解决 action 无法复用的问题](ios/fastlane/07/01/README.md)
-- [02 - plugin 到底是什么?](ios/fastlane/07/02/README.md)
-- [03 - plugin 开发、发布、使用](ios/fastlane/07/03/README.md)
-- [04 - plugin 使用记录](ios/fastlane/07/04/README.md)
+- [01 - plugin 解决 action 无法复用的问题](ios/fastlane/03/01/README.md)
+- [02 - plugin 到底是什么?](ios/fastlane/03/02/README.md)
+- [03 - plugin 开发、发布、使用](ios/fastlane/03/03/README.md)
+- [04 - plugin 使用记录](ios/fastlane/03/04/README.md)
+- [05 - fastlane ==禁止== pluginA 中, 调用 pluginB](ios/fastlane/02/06/README.md)
 
-#### 04. fastlane 禁止 action/plugin 之间调用
+#### 04. Fastfile 高级
 
-- [READNE](ios/fastlane/08/README.md)
+- [01 - import ==local== Fastfile](ios/fastlane/04/01/README.md)
+- [02 - import ==remote== Fastfile](ios/fastlane/04/01/README.md)
+- [03 - action 只能在 ==当前 fastlane 项目== 中调用](ios/fastlane/04/01/README.md)
+- [04 - 导入多个 Fastfile 时, 出现 ==同名 lane== 冲突](ios/fastlane/04/01/README.md)
+- [05 - import 导入  ==分目录== 管理 Fastfile](ios/fastlane/04/01/README.md)
 
-#### 05. 重用 Fastfile
+- [06 - 如果 Fastfile 会被 ==远程重用==, 需要注意的地方](ios/fastlane/04/01/README.md)
 
-- [README](ios/fastlane/06/README.md)
+- [07 - actions_path](ios/fastlane/04/01/README.md)
+- 
+- [重用 Fastfile](ios/fastlane/06/README.md)
 
 ### devops
 
@@ -247,7 +260,8 @@
 
 #### MR(Gitlab Merge Request) Pipeline
 
-- [基于 `.gitlab-ci.yml` 实现 Pipeline](ios/devops/pipeline/01.md)
+- [01 - 基于 `.gitlab-ci.yml` Pipeline 架构设计](ios/devops/pipeline/01/README.md)
+- [02 - sonar swift](ios/devops/pipeline/02/README.md)
 
 
 ### 读书笔记

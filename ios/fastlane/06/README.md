@@ -716,6 +716,344 @@ Using public_suffix 2.0.5
 
 
 
+## 99. Fastfile 代码封装
+
+### 1. 如果全部堆积在 Fastfile 一个文件内, 会造成代码爆炸
+
+> xx/fastlane/Fastfile
+
+```ruby
+def func1
+  ......
+end
+
+def func2
+  ......
+end
+
+......
+
+def funcN
+  ......
+end
+
+lane :entry do
+  action1
+  action2
+  .......
+  actionN
+
+  plugin1
+  plugin2
+  .......
+  pluginN
+
+  func1
+  func2
+  .......
+  funcN
+end
+```
+
+很多定义在 Fastfile 文件内的 **方法** 只能通过 **拷贝** 到其他的 Fastfile 文件中使用.
+
+### 2. fastlane 项目结构
+
+#### 1. WORKSPACE/toolbox/ 目录
+
+```
+ ~/WORKSPACE/toolbox   master ●  ll
+-rw-r--r--   1 xiongzenghui  staff   1.2K  7 11 15:06 Gemfile
+-rw-r--r--   1 xiongzenghui  staff   8.1K  7 15 18:02 Gemfile.lock
+-rw-r--r--   1 xiongzenghui  staff   362B  7 11 14:54 Makefile
+-rw-r--r--   1 xiongzenghui  staff   1.2K  7 15 17:00 README.md
+drwxr-xr-x  12 xiongzenghui  staff   384B  7 15 23:29 fastlane
+```
+
+#### 2. WORKSPACE/toolbox/fastlane/ 目录
+
+```
+ ~/WORKSPACE/toolbox/fastlane   master ●  ll
+-rw-r--r--   1 xiongzenghui  staff   230B  7 11 13:05 Appfile
+-rw-r--r--   1 xiongzenghui  staff   2.7K  7 15 23:55 Fastfile
+drwxr-xr-x  13 xiongzenghui  staff   416B  7 15 16:26 actions
+drwxr-xr-x   6 xiongzenghui  staff   192B  7 15 23:56 helper
+```
+
+#### 3. WORKSPACE/toolbox/fastlane/helper
+
+```
+ ~/WORKSPACE/toolbox/fastlane/helper   master ●  ll
+total 32
+-rw-r--r--  1 xiongzenghui  staff    53B  7 15 23:56 cry.rb
+-rw-r--r--  1 xiongzenghui  staff    53B  7 15 23:49 eat.rb
+-rw-r--r--  1 xiongzenghui  staff    53B  7 15 23:50 walk.rb
+```
+
+### 3. 使用 ==lane== 封装可重用代码
+
+#### 1. WORKSPACE/toolbox/fastlane/helper/eat.rb
+
+```ruby
+lane :eat do
+  UI.message("[lane] [eat] .......")
+end
+```
+
+#### 2. WORKSPACE/toolbox/fastlane/helper/walk.rb
+
+```ruby
+lane :run do
+  UI.message("[lane] [walk] .......")
+end
+```
+
+#### 3. WORKSPACE/toolbox/fastlane/helper/cry.rb
+
+```ruby
+lane :cry do
+  UI.message("[lane] [cry] .......")
+end
+```
+
+#### 4. WORKSPACE/toolbox/fastlane/Fastfile
+
+```ruby
+import 'helper/eat.rb'
+import 'helper/walk.rb'
+import 'helper/cry.rb'
+
+lane :test do
+  eat
+  walk
+  cry
+end
+```
+
+#### 5. bundle exec fastlane test
+
+```ruby
+ ~/WORKSPACE/toolbox   master ●  bundle exec fastlane test
+[✔] 🚀
+
+[00:02:43]: Driving the lane 'test' 🚀
+[00:02:43]: --------------------------------
+[00:02:43]: --- Step: Switch to eat lane ---
+[00:02:43]: --------------------------------
+[00:02:43]: Cruising over to lane 'eat' 🚖
+[00:02:43]: [lane] [eat] .......
+[00:02:43]: Cruising back to lane 'test' 🚘
+[00:02:43]: ---------------------------------
+[00:02:43]: --- Step: Switch to walk lane ---
+[00:02:43]: ---------------------------------
+[00:02:43]: Cruising over to lane 'walk' 🚖
+[00:02:43]: [lane] [walk] .......
+[00:02:43]: Cruising back to lane 'test' 🚘
+[00:02:43]: --------------------------------
+[00:02:43]: --- Step: Switch to cry lane ---
+[00:02:43]: --------------------------------
+[00:02:43]: Cruising over to lane 'cry' 🚖
+[00:02:43]: [lane] [cry] .......
+[00:02:43]: Cruising back to lane 'test' 🚘
+
++------+---------------------+-------------+
+|             fastlane summary             |
++------+---------------------+-------------+
+| Step | Action              | Time (in s) |
++------+---------------------+-------------+
+| 1    | Switch to eat lane  | 0           |
+| 2    | Switch to walk lane | 0           |
+| 3    | Switch to cry lane  | 0           |
++------+---------------------+-------------+
+
+[00:02:43]: fastlane.tools finished successfully 🎉
+```
+
+- 1) Driving the lane '**test**'
+- 2) Step: Switch to **eat** lane
+- 3) Step: Switch to **walk** lane
+- 4) Step: Switch to **cry** lane
+
+#### 6. ==不能使用== 这种方式
+
+- 虽然可以在 lane 中, 直接使用 fastlane UI.message、UI.success …. 等方法.
+- 但是会导致 **lane 重复定义**
+
+```
+ ~/WORKSPACE/toolbox  bundle exec fastlane test
+[✔] 🚀
+
+[15:35:00]: ------------------------------
+[15:35:00]: --- Step: default_platform ---
+[15:35:00]: ------------------------------
+
+[!] Lane 'demo' was defined multiple times!
+```
+
+### 4. 使用 ==action (其他目录下)== 封装可重用代码
+
+#### 1. WORKSPACE/toolbox/fastlane/helper/eat.rb
+
+```ruby
+module Fastlane
+  module Actions
+    class EatAction < Action
+      def self.run(params)
+        UI.message("[action] [eat] .......")
+      end
+    end
+  end
+end
+```
+
+#### 2. WORKSPACE/toolbox/fastlane/helper/walk.rb
+
+```ruby
+
+```
+
+#### 3. WORKSPACE/toolbox/fastlane/helper/cry.rb
+
+```ruby
+
+```
+
+#### 4. WORKSPACE/toolbox/fastlane/Fastfile
+
+```ruby
+#import 'helper/eat.rb'
+
+#  应该使用这种方式，导入【其他目录】下的 action.rb 文件
+#actions_path '../custom_actions_folder/'
+actions_path 'helper/'
+
+lane :test do
+  eat
+end
+```
+
+#### 5. bundle exec fastlane test
+
+```ruby
+ ~/WORKSPACE/toolbox   master ●  bundle exec fastlane test
+[✔] 🚀
+
+[00:21:05]: Driving the lane 'test' 🚀
+[00:21:05]: --------------------------------
+[00:21:05]: --- Step: Switch to eat lane ---
+[00:21:05]: --------------------------------
+[00:21:05]: Cruising over to lane 'eat' 🚖
+[00:21:05]: Cruising back to lane 'test' 🚘
+
++------+--------------------+-------------+
+|            fastlane summary             |
++------+--------------------+-------------+
+| Step | Action             | Time (in s) |
++------+--------------------+-------------+
+| 1    | Switch to eat lane | 0           |
++------+--------------------+-------------+
+
+[00:21:05]: fastlane.tools finished successfully 🎉
+```
+
+#### 6. 总结
+
+发现最终把 action 当做 **lane** 执行的.
+
+### 5. 使用 ==Fastlane Helper== 封装可重用代码
+
+#### 1. WORKSPACE/toolbox/fastlane/helper/eat.rb
+
+```ruby
+require 'fastlane_core/ui/ui'
+
+module Fastlane
+  UI = FastlaneCore::UI unless Fastlane.const_defined?("UI")
+  module Helper
+    class EatHelper
+      def self.show_message
+        UI.message("[helper] [eat] .......")
+      end
+    end
+  end
+end
+```
+
+#### 2. WORKSPACE/toolbox/fastlane/helper/happy.rb
+
+```ruby
+require 'fastlane_core/ui/ui'
+
+module Fastlane
+  UI = FastlaneCore::UI unless Fastlane.const_defined?("UI")
+  module Helper
+    class HappyHelper
+      def self.show_message
+        UI.message("[helper] [happy] .......")
+      end
+    end
+  end
+end
+```
+
+#### 3. WORKSPACE/toolbox/fastlane/helper/cry.rb
+
+```ruby
+require 'fastlane_core/ui/ui'
+
+module Fastlane
+  UI = FastlaneCore::UI unless Fastlane.const_defined?("UI")
+  module Helper
+    class CryHelper
+      def self.show_message
+        UI.message("[helper] [cry] .......")
+      end
+    end
+  end
+end
+```
+
+#### 4. WORKSPACE/toolbox/fastlane/Fastfile
+
+```ruby
+require_relative 'helper/eat.rb'
+require_relative 'helper/happy.rb'
+require_relative 'helper/cry.rb'
+
+lane :test do
+  Helper::EatHelper::show_message
+  # Helper::WalkHelper::show_message
+  Helper::HappyHelper::show_message
+  Helper::CryHelper::show_message
+end
+```
+
+#### 5. bundle exec fastlane test
+
+```ruby
+ ~/WORKSPACE/toolbox   master ●  bundle exec fastlane test
+[✔] 🚀
+
+[00:13:45]: Driving the lane 'test' 🚀
+[00:13:45]: [helper] [eat] .......
+[00:13:45]: [helper] [happy] .......
+[00:13:45]: [helper] [cry] .......
+[00:13:45]: fastlane.tools finished successfully 🎉
+```
+
+#### 6. 总结
+
+都按照 **helper** 执行的.
+
+### 6. 总结
+
+- 1) 应该使用 **action (本地)** 或者 **plugin (远程)** 封装可重用的代码
+- 2) action 和 plugin **路径** 问题
+  - **不应该** 依赖外部 **lane** 调用时的 **相对路径**
+  - 而 **应该** 由外部 **lane** 传入 **绝对路径**
+
+
+
 ## 99. 总结 ==重用 Fastfile==
 
 ### 1. 如果比较通用的 ==工具性(不可分割)== 代码
