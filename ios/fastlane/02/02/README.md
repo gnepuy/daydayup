@@ -6,8 +6,19 @@
 
 ### 1. ==fastalne run== 命令行执行 action
 
+#### 1. 
+
 ```
 fastlane run <action名字> <key1:value1> <key2:value2> ... <keyN:valueN>
+```
+
+#### 2. 
+
+```
+fastlane [tool] --[option]=[value]
+
+fastlane deliver --skip_screenshots=true
+fastlane snapshot --screenshots_path=xxxxx --schema=xxxx
 ```
 
 ### 2. ==Fastfile lane== 调用 action

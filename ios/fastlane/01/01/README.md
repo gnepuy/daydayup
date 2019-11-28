@@ -28,18 +28,21 @@ end
 
 
 
-## 3. lane 接收 ==参数==
-
-### 1. Fastfile
+## 3. lane ==接收== 参数
 
 ```ruby
 lane :appstore do |options|
-  puts options[:version]
+	p options.class #=> 就是一个 Hash 对象
+  puts options[:version] #=> key 都是 Symbol 对象
   puts options[:build]
 end
 ```
 
-### 2. bundle exec fastlane `<lane_name>` key1:value1 key2:value2
+
+
+## 4. ==传递== 参数给 lane
+
+### 1. bundle exec fastlane `<lane_name>` key1:value1 key2:value2
 
 命令行中执行定义的 lane 时, **传递** 参数键值对
 
@@ -47,9 +50,59 @@ end
 $ fastlane appstore version:2.4.0 build:2.0
 ```
 
+### 2. Fastfile 调用 lane 
+
+```ruby
+lane :appstore do |options|
+  puts options[:version]
+  puts options[:build]
+end
+
+lane :job
+	appstore(
+		version: '1.1.1',
+		build: '1656'
+	)
+end
+```
+
+### 3. Fastfile 调用 lane && ==手动构造 hash 传入== 
+
+```ruby
+lane :add_bugly do |options|
+	version 			= options[:version]
+  bugly_app_id 	= options[:bugly_app_id]
+  bugly_app_key = options[:bugly_app_key]
+  
+  # .....
+end
+
+lane :job do |options|
+	version 		= options[:version]
+	build 			= options[:build]
+	
+	# 1、根据条件, 构造 lane/action/plugin 需要的【参数 Hash】
+	args = 	if build % 2 == 0
+						{
+							version: version,
+							bugly_app_id: '1111',
+							bugly_app_key: '111-key'
+						}
+					else
+						{
+							version: version,
+							bugly_app_id: '2222',
+							bugly_app_key: '2222-key'
+						}
+					end
+					
+	# 2、调用 lane/action/plugin, 传入【参数 Hash】
+	appstore(args)
+end
+```
 
 
-## 4. laneA ==调用== laneB (Switching lanes)
+## 5. laneA ==调用== laneB (Switching lanes)
 
 ```ruby
 lane :prepare do
@@ -82,7 +135,7 @@ end
 
 
 
-## 5. laneA ==返回值== laneB
+## 6. laneA ==返回值== laneB
 
 ```ruby
 lane :deploy do |options|
@@ -98,7 +151,7 @@ end
 
 
 
-## 6. ==Stop== executing a lane
+## 7. ==Stop== executing a lane
 
 ```ruby
 lane :build do |options|
@@ -108,7 +161,7 @@ end
 
 
 
-## 7. Lane ==Context== Properties
+## 8. Lane ==Context== Properties
 
 用于在 **不同的 lane** 之间 **传递数据**
 
@@ -134,7 +187,7 @@ end
 
 
 
-## 8. ==Private== lane
+## 9. ==Private== lane
 
 ```ruby
 lane :production do
@@ -162,7 +215,7 @@ end
 
 
 
-## 9. 示例
+## 10. 示例
 
 ```ruby
 desc "打包成企业版ipa"

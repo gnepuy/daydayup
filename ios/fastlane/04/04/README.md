@@ -2,185 +2,169 @@
 
 
 
-## 1. Action 直接 return value
+## 1. 不可分割、可被 import 的 lane
 
-### 1. my_action
+### 1. 单独存放在 private_lane 目录
+
+![](Snip20191107_4.png)
+
+### 2. 单独的 XxxFastfile 封装, 某一个 功能实现
 
 ```ruby
-module Fastlane
-  module Actions
-    module SharedValues
-      MY_ACTION_KEY_1 = :MY_ACTION_KEY_1
-      MY_ACTION_KEY_2 = :MY_ACTION_KEY_2
-      MY_ACTION_KEY_3 = :MY_ACTION_KEY_3
-    end
-
-    require 'pp'
-
-    class MyActionAction < Action
-      def self.run(params)
-        # 直接返回需要的【返回值】即可
-        return "wo cao ni ma ~"
-      end
-
-      ####################################
-      # @!group Documentation
-      ####################################
-
-      def self.description
-        "A short description with <= 80 characters of what this action does"
-      end
-
-      def self.details
-        "You can use this action to do cool things..."
-      end
-      
-      def self.return_type
-        :stirng
-      end
-
-      def self.return_value
-        'return a name for you ~'
-      end
-    end
+# private_app_package_upload_ipa_to_appstore.rb
+private_lane :private_app_package_upload_ipa_to_appstore do |options|
+  ipa_output_path = options[:ipa_output_path]
+  apple_account   = options[:apple_account]
+  cmds = [
+      'xcrun altool --upload-app',
+      "-f #{ipa_output_path}",
+      "-u #{apple_account} -p '@keychain:Application Loader: #{apple_account}' --output-format normal"
+  ]
+  cmd = cmds.join(' ')
+  begin
+    Actions.sh(cmd)
+  rescue => ex
+    UI.error("cmd is : #{cmd}")
   end
 end
 ```
 
-### 2. Fastfile 调用 my_action 并直接获取 返回值
+### 3. 不要使用 import 来导入其他的 Fastfile
+
+![](Snip20191107_5.png)
+
+这样会造成后续这个 Fastfile **被其他 Fastfile import** 造成 **命名冲突**
+
+
+
+## 2. 可分割、不可被 import 的 lane
+
+### 1. 统一目录存放 Fastfile (组装 N个 action/plugin)
+
+通常这种 Fastfile 文件代码比较多，lane 也比较多，会调用 private lane 的 Fastfile
+
+![](Snip20191107_6.png)
+
+### 2. 比如某个 Fastfile 
 
 ```ruby
-lane :build do
-  ret = my_action
-  UI.message("ret = #{ret}")
+# ModuleListFastfile.rb
+
+fastlane_require 'json'
+
+desc "http://ci.in.xxx.com/view/Athena2/job/-iOS/"
+lane :module_list_job do |options|
+  workspace = options[:workspace]
+  project = options[:project]
+  athena_params = options[:athena_params]
+  athena_result = options[:athena_result]
+
+  athena_params_hash = JSON.parse(File.read(athena_params))
+  athena_result_hash = JSON.parse(File.read(athena_result))
+  # parameter_hash = athena_params_json['parameter']
+
+  # 1. venom ipc venomfiles --path /path/to/..
+  venomfiles_dir = File.expand_path('xx/Venomfiles', project)
+  venomfiles_hash = venom_ipc_venomfiles(path: venomfiles_dir)
+  # UI.important "⚠️  " * 30
+  # pp venomfiles_hash
+
+  # 2. result
+  athena_result_hash['result'] = {
+    'module_list' => venomfiles_hash
+  }
+
+  # 3. write result
+  write_athena_result(
+    result: athena_result_hash,
+    status: '2',
+    code: '0',
+    info: '✅ success finished',
+    filepath: athena_result
+  )
 end
 ```
 
-### 3. fastlane exec
+### 4. 也不要使用 **import** 去导入其他的 Fastfile, 保持 **独立**
 
-```
-# bundle exec fastlane build
-[✔] 🚀
-[13:19:00]: Driving the lane 'build' 🚀
-[13:19:00]: ----------------
-[13:19:00]: --- Step: my ---
-[13:19:00]: ----------------
-[13:19:00]: ret = wo cao ni ma ~
+![](Snip20191107_8.png)
 
-+------+--------+-------------+
-|      fastlane summary       |
-+------+--------+-------------+
-| Step | Action | Time (in s) |
-+------+--------+-------------+
-| 1    | my     | 0           |
-+------+--------+-------------+
-
-[13:19:00]: fastlane.tools finished successfully
-```
-
-
-
-## 2. lane context
-
-### 1. 参考 git_branch
-
-https://github.com/fastlane/fastlane/blob/master/fastlane/lib/fastlane/actions/git_branch.rb
-
-### 2. my_action
+### 5. 直接调用 private lane Fastfile 中定义的 private lane
 
 ```ruby
-module Fastlane
-  module Actions
-    module SharedValues
-      MY_ACTION_KEY_1 = :MY_ACTION_KEY_1
-      MY_ACTION_KEY_2 = :MY_ACTION_KEY_2
-      MY_ACTION_KEY_3 = :MY_ACTION_KEY_3
-    end
+# GeneralAppPackagingFastfile.rb
 
-    require 'pp'
+require 'xcodeproj'
 
-    class MyActionAction < Action
-      def self.run(params)
-        self.lane_context[SharedValues::MY_ACTION_KEY_1] = 'MY_ACTION_KEY_1_VALUE'
-        self.lane_context[SharedValues::MY_ACTION_KEY_2] = 'MY_ACTION_KEY_2_VALUE'
-        self.lane_context[SharedValues::MY_ACTION_KEY_3] = 'MY_ACTION_KEY_3_VALUE'
-      end
+fastlane_require 'pp'
+fastlane_require 'fileutils'
+fastlane_require 'base64'
+fastlane_require 'yaml'
+fastlane_require 'json'
 
-      ####################################
-      # @!group Documentation
-      ####################################
+lane :general_app_packaging do |options|
+  ................................
 
-      def self.description
-        "A short description with <= 80 characters of what this action does"
-      end
+  # 获取二进制文件名称
+  product_name = private_get_product_name_in_project(
+    xcodeproj: xcodeproj_file
+  )
 
-      def self.details
-        "You can use this action to do cool things..."
-      end
+  # 获取应用展示名称
+  display_name = private_get_display_name_in_project(
+    xcodeproj: xcodeproj_file
+  )
 
-      def self.available_options
-        nil
-      end
-
-      def self.output
-        [
-          ['MY_ACTION_KEY_1', 'A description of MY_ACTION_KEY_1'],
-          ['MY_ACTION_KEY_2', 'A description of MY_ACTION_KEY_2'],
-          ['MY_ACTION_KEY_3', 'A description of MY_ACTION_KEY_3']
-        ]
-      end
-
-      def self.return_value
-        # If your method provides a return value, you can describe here what it does
-      end
-
-      def self.authors
-        ["Your GitHub/Twitter Name"]
-      end
-
-      def self.is_supported?(platform)
-        platform == :ios
-      end
-    end
-  end
+  ................................
 end
 ```
 
-### 3. Fastfile 调用 my_action 并从 shared values 中获取 返回值
+
+
+## 3.  import Fastfile 分目录
+
+### 1. 目录结构
+
+```
+╰─○ tree
+.
+└── fastlane
+    ├── Fastfile
+    └── Fastfiles
+        ├── request
+        │   ├── login.rb
+        │   ├── logout.rb
+        │   └── regist.rb
+        ├── request.rb
+        ├── tools
+        │   ├── add.rb
+        │   ├── mul.rb
+        │   └── sub.rb
+        └── tools.rb
+```
+
+### 2. fastlane/Fastfile (顶层)
 
 ```ruby
-lane :build do
-  # 1.
-  my_action
+default_platform(:ios)
 
-  # 2. 获取 action 存储到 SharedValues 中的返回值
-  UI.message(self.lane_context[SharedValues::MY_ACTION_KEY_1])
-  UI.message(self.lane_context[SharedValues::MY_ACTION_KEY_2])
-  UI.message(self.lane_context[SharedValues::MY_ACTION_KEY_3])
-end
+# 1、导入 不可分割 private lane 所在的 Fastfile 文件
+import 'Fastfiles/PrivateLaneFastfile.rb'
+
+# 2、导入 可分割 public lane 所在的 Fastfile 文件
+import 'Fastfiles/ModuleLaneFastfile.rb'
 ```
 
-### 4. fastlane exec
+### 3. fastlane/Fastfiles/PrivateLaneFastfile.rb
+
+```ruby
+Dir[File.expand_path('private_lane/*.rb', __dir__)].each { |f| import f }
+```
+
+### 4. fastlane/Fastfiles/ModuleLaneFastfile.rb
 
 ```
- ~/collect_xxx/toolbox   master ●  bundle exec fastlane build
-[✔] 🚀
-[13:09:24]: Driving the lane 'build' 🚀
-[13:09:24]: ----------------
-[13:09:24]: --- Step: my ---
-[13:09:24]: ----------------
-[13:09:24]: MY_ACTION_KEY_1_VALUE
-[13:09:24]: MY_ACTION_KEY_2_VALUE
-[13:09:24]: MY_ACTION_KEY_3_VALUE
-
-+------+--------+-------------+
-|      fastlane summary       |
-+------+--------+-------------+
-| Step | Action | Time (in s) |
-+------+--------+-------------+
-| 1    | my     | 0           |
-+------+--------+-------------+
-
-[13:09:24]: fastlane.tools finished successfully
+Dir[File.expand_path('module_lane/*.rb', __dir__)].each { |f| import f }
 ```
+
 

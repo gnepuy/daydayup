@@ -204,9 +204,13 @@
 
 ### fastlane
 
+#### 00. fastlane
+
+- [01 - Configuring fastlane](ios/fastlane/00/README.md)
+
 #### 01. Fastfile 基础
 
-- [01 - Fastfile 文件中定义 lane](ios/fastlane/01/01/README.md)
+- [01 - Fastfile 定义、调用 lane](ios/fastlane/01/01/README.md)
 - [02 - ENV 环境变量](ios/fastlane/01/02/README.md)
 - [03 - Appfile Configuration](ios/fastlane/01/03/README.md)
 - [04 - lane hooks](ios/fastlane/01/04/README.md)
@@ -218,12 +222,15 @@
 
 #### 02. action
 
-- [01 - lane 与 action 工作目录 ==不一样==](ios/fastlane/02/01/README.md)
+- [01 - lane 与 action 工作目录 (Directory behavior) ==不一样==](ios/fastlane/02/01/README.md)
 - [02 - 自定义 action、运行 action](ios/fastlane/02/02/README.md)
 - [03 - action 参数类型](ios/fastlane/02/03/README.md)
 - [04 - actionA ==传递== 数据给 actionB](ios/fastlane/02/04/README.md)
 - [05 - action 无法在 ==其他 fastlane 项目中复用==](ios/fastlane/02/05/README.md)
 - [06 - fastlane ==禁止== actionA 中, 调用 actionB](ios/fastlane/02/06/README.md)
+- [07 - 指定本地 action 路径](ios/fastlane/02/07/README.md)
+- [08 - Fastlane Helper](ios/fastlane/02/08/README.md)
+- [09 - action 编写总结 (适用于 plugin)](ios/fastlane/02/09/README.md)
 
 #### 03. plugin
 
@@ -236,16 +243,9 @@
 #### 04. Fastfile 高级
 
 - [01 - import ==local== Fastfile](ios/fastlane/04/01/README.md)
-- [02 - import ==remote== Fastfile](ios/fastlane/04/01/README.md)
-- [03 - action 只能在 ==当前 fastlane 项目== 中调用](ios/fastlane/04/01/README.md)
-- [04 - 导入多个 Fastfile 时, 出现 ==同名 lane== 冲突](ios/fastlane/04/01/README.md)
-- [05 - import 导入  ==分目录== 管理 Fastfile](ios/fastlane/04/01/README.md)
-
-- [06 - 如果 Fastfile 会被 ==远程重用==, 需要注意的地方](ios/fastlane/04/01/README.md)
-
-- [07 - actions_path](ios/fastlane/04/01/README.md)
-- 
-- [重用 Fastfile](ios/fastlane/06/README.md)
+- [02 - import ==remote== Fastfile](ios/fastlane/04/02/README.md)
+- [03 - 编写 ==远程重用== Fastfile 注意点](ios/fastlane/04/03/README.md)
+- [04 - 封装 ==可重用== 的 ==lane==](ios/fastlane/04/04/README.md)
 
 ### devops
 

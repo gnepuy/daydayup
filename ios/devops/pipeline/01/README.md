@@ -345,7 +345,7 @@ before_script:
   - source /Users/xxx/.bash_profile
   - source $(rvm env ruby-2.4.1@global --path)
   - rm -rf toolbox
-  - git clone git@git.in.xxx.com:xxx/toolbox.git -b dev --depth=1 --single-branch
+  - git clone git@xxx.com:xxx/toolbox.git -b dev --depth=1 --single-branch
   - cd toolbox
   - bundle install
   - cd ../
